@@ -14,7 +14,7 @@ export function Hero() {
 
       <div className="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-28">
         <p className="animate-fade-up font-display text-sm font-extrabold uppercase tracking-[0.14em] text-stamp-red sm:text-base">
-          Nr 1 wśród maturzystów
+          Matura ustna z polskiego · 2026/2027
         </p>
 
         <h1 className="animate-fade-up-delay-1 mt-3 max-w-3xl font-display text-4xl font-extrabold uppercase leading-[0.95] tracking-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">

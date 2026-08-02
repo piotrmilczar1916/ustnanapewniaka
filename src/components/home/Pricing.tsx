@@ -41,7 +41,7 @@ export function Pricing() {
                 <span className="text-success" aria-hidden>
                   ✓
                 </span>
-                Ocena z cytatami (mock → potem AI)
+                Ocena z cytatami
               </li>
             </ul>
             <ButtonLink href="/symulacja" variant="secondary" className="mt-8 w-full">

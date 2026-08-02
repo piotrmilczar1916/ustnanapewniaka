@@ -8,7 +8,6 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 const NAV = [
   { href: "/#jak-dziala", label: "Jak działa" },
   { href: "/#komisja-ai", label: "Komisja AI" },
-  { href: "/#opinie", label: "Opinie" },
   { href: "/#cennik", label: "Cennik" },
   { href: "/#faq", label: "FAQ" },
 ];
@@ -54,7 +53,7 @@ export function Header() {
             </Link>
           )}
           <ButtonLink href="/symulacja" size="sm">
-            Symulacja
+            Symulator
           </ButtonLink>
         </nav>
 
