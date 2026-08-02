@@ -1,5 +1,24 @@
 import { ButtonLink } from "@/components/ButtonLink";
 
+const TRUST_BADGES = [
+  {
+    emoji: "🇵🇱",
+    text: "Symulator matury ustnej z polskiego",
+  },
+  {
+    emoji: "🔥",
+    text: "Ocena wg aktualnych kryteriów CKE",
+  },
+  {
+    emoji: "✅",
+    text: "Losowanie, czas i komisja — jak na egzaminie",
+  },
+  {
+    emoji: "📈",
+    text: "Feedback z cytatami z Twojej wypowiedzi",
+  },
+];
+
 export function Hero() {
   return (
     <section className="relative overflow-hidden border-b-2 border-ink bg-paper">
@@ -34,6 +53,22 @@ export function Hero() {
             Zobacz cennik
           </ButtonLink>
         </div>
+
+        <ul className="animate-fade-up-delay-2 mt-6 grid w-full max-w-xl gap-2 sm:grid-cols-2">
+          {TRUST_BADGES.map((badge) => (
+            <li
+              key={badge.text}
+              className="flex items-center gap-2 rounded-full border-2 border-ink bg-paper px-3 py-1.5 text-left shadow-[2px_2px_0_var(--ink)] sm:justify-center sm:text-center"
+            >
+              <span className="shrink-0 text-base leading-none" aria-hidden>
+                {badge.emoji}
+              </span>
+              <span className="text-xs font-semibold leading-snug text-ink">
+                {badge.text}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
