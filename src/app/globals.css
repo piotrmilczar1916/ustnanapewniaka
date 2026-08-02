@@ -104,6 +104,11 @@ body {
     scroll-behavior: auto;
   }
 
+  .how-it-works-steps:has(> li:hover) > li:not(:hover) {
+    opacity: 1;
+    transform: none;
+  }
+
   .animate-stamp-in,
   .animate-stamp-press,
   .animate-fade-up,

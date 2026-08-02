@@ -1,4 +1,3 @@
-import { ButtonLink } from "@/components/ButtonLink";
 import { Stamp } from "@/components/Stamp";
 
 const POINTS = [
@@ -14,13 +13,13 @@ const POINTS = [
   },
   {
     n: "03",
-    title: "Ocenia wg 4 kryteriów CKE",
-    text: "Meritum, kompozycja, język i odpowiedzi na pytania — każde z osobną punktacją i uzasadnieniem.",
+    title: "Punktuje wg kart oceny CKE",
+    text: "Aspekt merytoryczny, kompozycja, rozmowa z komisją i środki językowe — dokładnie te progi punktowe, których używa egzaminator.",
   },
   {
     n: "04",
-    title: "Cytuje Twoją wypowiedź",
-    text: "Feedback nie brzmi „pracuj nad strukturą”. Dostajesz konkret: fragment tego, co powiedziałeś, i co z tym zrobić.",
+    title: "Cytuje Twoją wypowiedź — dosłownie",
+    text: "Każdy cytat w ocenie jest porównywany z Twoją transkrypcją. Jeśli fragment się nie zgadza, nie trafia do feedbacku.",
   },
 ];
 
@@ -64,19 +63,6 @@ export function KomisjaAI() {
             </li>
           ))}
         </ol>
-
-        <div className="mt-10 border-2 border-ink bg-ink p-5 text-paper sm:p-6">
-          <p className="font-display text-lg font-bold uppercase tracking-wide text-gold sm:text-xl">
-            Krótko: nie uczysz się „pod apkę” — trenujesz pod egzamin.
-          </p>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-paper/75 sm:text-base">
-            Komisja AI nie zastępuje CKE. Daje Ci bezpieczne powtórki stresu
-            egzaminacyjnego, zanim usiądziesz przed prawdziwą komisją w maju.
-          </p>
-          <ButtonLink href="/symulacja" className="mt-5">
-            Sprawdź na sobie
-          </ButtonLink>
-        </div>
       </div>
     </section>
   );

@@ -32,17 +32,19 @@ export function HowItWorks() {
           Cztery kroki. Zero niespodzianek — pełny przebieg egzaminu ustnego.
         </p>
 
-        <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="how-it-works-steps mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 [&:has(>li:hover)_li:not(:hover)]:scale-[0.98] [&:has(>li:hover)_li:not(:hover)]:opacity-55">
           {STEPS.map((step) => (
             <li
               key={step.n}
-              className="border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)]"
+              className="group/step border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)] transition-[transform,box-shadow,background-color,border-color,opacity] duration-200 ease-out hover:-translate-y-1.5 hover:border-stamp-red hover:bg-paper hover:shadow-[6px_6px_0_var(--stamp-red)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             >
-              <p className="font-mono text-sm text-stamp-red">{step.n}</p>
-              <h3 className="mt-2 font-display text-xl font-bold uppercase tracking-wide text-ink sm:text-2xl">
+              <p className="inline-block font-mono text-sm text-stamp-red transition-[color,background-color,transform] duration-200 group-hover/step:scale-110 group-hover/step:bg-stamp-red group-hover/step:px-2 group-hover/step:py-0.5 group-hover/step:text-paper">
+                {step.n}
+              </p>
+              <h3 className="mt-2 font-display text-xl font-bold uppercase tracking-wide text-ink transition-colors duration-200 group-hover/step:text-stamp-red sm:text-2xl">
                 {step.title}
               </h3>
-              <p className="mt-3 text-sm leading-relaxed text-graphite sm:text-base">
+              <p className="mt-3 text-sm leading-relaxed text-graphite transition-colors duration-200 group-hover/step:text-ink sm:text-base">
                 {step.text}
               </p>
             </li>

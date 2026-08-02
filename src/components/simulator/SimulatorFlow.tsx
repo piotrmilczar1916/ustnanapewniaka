@@ -1,20 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/Button";
 import { ButtonLink } from "@/components/ButtonLink";
 import { Stamp } from "@/components/Stamp";
-import {
-  MOCK_TRANSCRIPT,
-  mockEvaluation,
-  mockFollowUps,
-} from "@/data/mock-evaluation";
+import { EXAMPLE_TRANSCRIPT } from "@/data/example-transcript";
 import { drawQuestion, getJawneQuestionByNumber } from "@/data/mock-questions";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import type {
+  EvaluationResult,
   ExamSubject,
+  FollowUpQuestion,
   Question,
   QuestionKind,
   SimulatorStep,
@@ -59,11 +57,14 @@ export function SimulatorFlow() {
   const [recording, setRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [micError, setMicError] = useState<string | null>(null);
-  const [followUps, setFollowUps] = useState(() => mockFollowUps(""));
+  const [followUps, setFollowUps] = useState<FollowUpQuestion[]>([]);
   const [followUpIndex, setFollowUpIndex] = useState(0);
   const [followUpAnswers, setFollowUpAnswers] = useState<string[]>([]);
   const [currentFollowUpAnswer, setCurrentFollowUpAnswer] = useState("");
   const [evaluating, setEvaluating] = useState(false);
+  const [preparingQuestions, setPreparingQuestions] = useState(false);
+  const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
+  const [evaluationError, setEvaluationError] = useState<string | null>(null);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const recordTimerRef = useRef<number | null>(null);
@@ -85,19 +86,16 @@ export function SimulatorFlow() {
     setRecording(false);
     setTranscript("");
     setMicError(null);
-    setFollowUps(mockFollowUps(""));
+    setFollowUps([]);
     setFollowUpIndex(0);
     setFollowUpAnswers([]);
     setCurrentFollowUpAnswer("");
     setEvaluating(false);
+    setEvaluation(null);
     setStep("prep");
   }, [pytanieParam]);
 
   const stepIndex = STEPS.indexOf(step);
-  const evaluation = useMemo(
-    () => (step === "result" ? mockEvaluation(transcript) : null),
-    [step, transcript],
-  );
 
   // Prep countdown
   useEffect(() => {
@@ -216,18 +214,73 @@ export function SimulatorFlow() {
     setStep("prep");
   }
 
-  function finishRecording(useMock = false) {
+  async function finishRecording(useExample = false) {
     stopRecording();
-    const text = useMock ? MOCK_TRANSCRIPT : transcript.trim() || MOCK_TRANSCRIPT;
-    if (useMock || !transcript.trim()) {
+    const text = useExample ? EXAMPLE_TRANSCRIPT : transcript.trim();
+    if (useExample) {
       setTranscript(text);
     }
-    const fus = mockFollowUps(text);
-    setFollowUps(fus);
+
     setFollowUpIndex(0);
     setFollowUpAnswers([]);
     setCurrentFollowUpAnswer("");
+    setPreparingQuestions(true);
     setStep("followup");
+
+    try {
+      const response = await fetch("/api/pytania-dodatkowe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionTitle: question?.title ?? "",
+          questionKind: questionKind ?? "jawne",
+          transcript: text,
+        }),
+      });
+      const data = (await response.json()) as { questions?: FollowUpQuestion[] };
+      setFollowUps(data.questions ?? []);
+    } catch {
+      setFollowUps([
+        {
+          id: "fu-1",
+          text: "Rozwiń najważniejszy argument ze swojej wypowiedzi i uzasadnij go odwołaniem do tekstu.",
+        },
+      ]);
+    } finally {
+      setPreparingQuestions(false);
+    }
+  }
+
+  async function runEvaluation(answers: string[]) {
+    setEvaluating(true);
+    setEvaluationError(null);
+    try {
+      const response = await fetch("/api/ocena", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionCode: question?.code ?? "—",
+          questionTitle: question?.title ?? "",
+          questionKind: questionKind ?? "jawne",
+          cultureTextHint: question?.cultureTextHint,
+          transcript,
+          dialogue: followUps.map((fu, i) => ({
+            question: fu.text,
+            answer: answers[i] ?? "",
+          })),
+        }),
+      });
+      if (!response.ok) throw new Error("Ocena nie powiodła się.");
+      const data = (await response.json()) as EvaluationResult;
+      setEvaluation(data);
+      setStep("result");
+    } catch {
+      setEvaluationError(
+        "Nie udało się pobrać oceny. Sprawdź połączenie i spróbuj ponownie.",
+      );
+    } finally {
+      setEvaluating(false);
+    }
   }
 
   function submitFollowUp() {
@@ -240,11 +293,7 @@ export function SimulatorFlow() {
       return;
     }
 
-    setEvaluating(true);
-    window.setTimeout(() => {
-      setEvaluating(false);
-      setStep("result");
-    }, 900);
+    void runEvaluation(nextAnswers);
   }
 
   function resetFlow() {
@@ -258,11 +307,13 @@ export function SimulatorFlow() {
     setRecordSeconds(0);
     setTranscript("");
     setMicError(null);
-    setFollowUps(mockFollowUps(""));
+    setFollowUps([]);
     setFollowUpIndex(0);
     setFollowUpAnswers([]);
     setCurrentFollowUpAnswer("");
     setEvaluating(false);
+    setPreparingQuestions(false);
+    setEvaluation(null);
   }
 
   return (
@@ -270,7 +321,7 @@ export function SimulatorFlow() {
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-graphite">
-            Symulator · tryb mock
+            Symulator · ocena wg kryteriów CKE
           </p>
           <h1 className="mt-1 font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
             Matura ustna
@@ -343,28 +394,36 @@ export function SimulatorFlow() {
             micError={micError}
             onTranscriptChange={setTranscript}
             onStart={startRecording}
-            onStop={() => finishRecording(false)}
-            onUseMock={() => finishRecording(true)}
+            onStop={() => void finishRecording(false)}
+            onUseMock={() => void finishRecording(true)}
           />
         )}
 
-        {step === "followup" && (
-          <FollowUpStep
-            question={followUps[followUpIndex]!}
-            index={followUpIndex}
-            total={followUps.length}
-            answer={currentFollowUpAnswer}
-            evaluating={evaluating}
-            onAnswerChange={setCurrentFollowUpAnswer}
-            onSubmit={submitFollowUp}
-          />
-        )}
+        {step === "followup" &&
+          (preparingQuestions || !followUps[followUpIndex] ? (
+            <PreparingQuestions />
+          ) : (
+            <FollowUpStep
+              question={followUps[followUpIndex]!}
+              index={followUpIndex}
+              total={followUps.length}
+              answer={currentFollowUpAnswer}
+              evaluating={evaluating}
+              error={evaluationError}
+              onAnswerChange={setCurrentFollowUpAnswer}
+              onSubmit={submitFollowUp}
+              onRetry={() => void runEvaluation(followUpAnswers)}
+            />
+          ))}
 
         {step === "result" && evaluation && (
           <ResultStep
             evaluation={evaluation}
             question={question}
             questionKind={questionKind}
+            transcript={transcript}
+            followUpAnswers={followUpAnswers}
+            followUps={followUps}
             onRestart={resetFlow}
           />
         )}
@@ -626,7 +685,7 @@ function RecordStep({
           <Button onClick={onStop}>Zakończ wypowiedź</Button>
         )}
         <Button variant="secondary" onClick={onUseMock}>
-          Użyj mock-transkrypcji
+          Wstaw przykładową wypowiedź
         </Button>
       </div>
     </div>
@@ -639,16 +698,20 @@ function FollowUpStep({
   total,
   answer,
   evaluating,
+  error,
   onAnswerChange,
   onSubmit,
+  onRetry,
 }: {
-  question: { id: string; text: string };
+  question: FollowUpQuestion;
   index: number;
   total: number;
   answer: string;
   evaluating: boolean;
+  error: string | null;
   onAnswerChange: (v: string) => void;
   onSubmit: () => void;
+  onRetry: () => void;
 }) {
   return (
     <div>
@@ -662,7 +725,18 @@ function FollowUpStep({
         Generowane na podstawie Twojej wypowiedzi — nie ze sztywnego skryptu.
       </p>
 
-      <blockquote className="mt-6 border-2 border-ink bg-paper p-4 text-base leading-relaxed text-ink">
+      {question.basedOnQuote ? (
+        <div className="mt-6 border-l-4 border-gold bg-paper/60 py-2 pl-3">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-graphite">
+            Komisja odnosi się do Twoich słów
+          </p>
+          <p className="mt-1 text-sm italic text-ink">
+            „{question.basedOnQuote}”
+          </p>
+        </div>
+      ) : null}
+
+      <blockquote className="mt-4 border-2 border-ink bg-paper p-4 text-base leading-relaxed text-ink">
         {question.text}
       </blockquote>
 
@@ -680,15 +754,40 @@ function FollowUpStep({
         />
       </label>
 
-      <div className="mt-8">
-        <Button onClick={onSubmit} disabled={evaluating}>
+      {error ? (
+        <p className="mt-4 border-2 border-stamp-red bg-paper p-3 text-sm text-stamp-red">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <Button onClick={error ? onRetry : onSubmit} disabled={evaluating}>
           {evaluating
-            ? "Komisja ocenia…"
-            : index + 1 < total
-              ? "Następne pytanie"
-              : "Przejdź do oceny"}
+            ? "Komisja analizuje wypowiedź…"
+            : error
+              ? "Spróbuj ponownie"
+              : index + 1 < total
+                ? "Następne pytanie"
+                : "Przejdź do oceny"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+function PreparingQuestions() {
+  return (
+    <div className="py-6 text-center">
+      <p className="font-mono text-xs uppercase tracking-[0.18em] text-gold">
+        Komisja AI
+      </p>
+      <h2 className="mt-2 font-display text-2xl font-bold uppercase text-ink">
+        Analizuję Twoją wypowiedź…
+      </h2>
+      <p className="mt-3 text-sm text-graphite">
+        Komisja czyta transkrypcję i układa pytania dotyczące tego, co
+        faktycznie powiedziałeś.
+      </p>
     </div>
   );
 }
@@ -697,15 +796,22 @@ function ResultStep({
   evaluation,
   question,
   questionKind,
+  transcript,
+  followUpAnswers,
+  followUps,
   onRestart,
 }: {
-  evaluation: NonNullable<ReturnType<typeof mockEvaluation>>;
+  evaluation: EvaluationResult;
   question: Question | null;
   questionKind: QuestionKind | null;
+  transcript: string;
+  followUpAnswers: string[];
+  followUps: FollowUpQuestion[];
   onRestart: () => void;
 }) {
   const { user, addSessionResult } = useAuth();
   const savedRef = useRef(false);
+  const cleanTranscript = transcript.trim();
 
   useEffect(() => {
     if (!user || !question || !questionKind || savedRef.current) return;
@@ -731,7 +837,9 @@ function ResultStep({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-graphite">
-            Wynik · mock
+            {evaluation.source === "ai"
+              ? "Wynik · kryteria CKE"
+              : "Wynik orientacyjny · tryb offline"}
           </p>
           <h2 className="mt-1 font-display text-2xl font-bold uppercase text-ink">
             Ocena komisji
@@ -765,12 +873,99 @@ function ResultStep({
         </div>
       </div>
 
-      <p className="mt-4 font-mono text-3xl font-semibold text-ink">
-        {evaluation.totalPoints}/{evaluation.maxPoints} pkt
+      <div className="mt-4 flex flex-wrap items-baseline gap-3">
+        <p className="font-mono text-3xl font-semibold text-ink">
+          {evaluation.totalPoints}/{evaluation.maxPoints} pkt
+        </p>
+        <span
+          className={[
+            "border-2 border-ink px-2 py-1 font-mono text-xs uppercase tracking-wider",
+            evaluation.passed
+              ? "bg-success text-paper"
+              : "bg-stamp-red text-paper",
+          ].join(" ")}
+        >
+          {evaluation.passed ? "Zdane (próg 30%)" : "Poniżej progu 30%"}
+        </span>
+      </div>
+      <p className="mt-2 font-mono text-[11px] text-graphite">
+        Skala CKE dla jednego zadania: meritum 8 · kompozycja 2 · rozmowa 6 ·
+        język 4. Pełny egzamin to dwa zadania i 30 pkt.
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-graphite">
+      <p className="mt-3 text-sm leading-relaxed text-graphite">
         {evaluation.summary}
       </p>
+
+      {evaluation.requirements.length > 0 ? (
+        <ul className="mt-6 grid gap-2 sm:grid-cols-2">
+          {evaluation.requirements.map((req) => (
+            <li
+              key={req.label}
+              className="border-2 border-ink/20 bg-paper p-3 text-sm"
+            >
+              <div className="flex items-start gap-2">
+                <span
+                  className={[
+                    "mt-0.5 font-mono text-xs",
+                    req.met ? "text-success" : "text-stamp-red",
+                  ].join(" ")}
+                >
+                  {req.met ? "✓" : "✕"}
+                </span>
+                <div>
+                  <p className="font-medium text-ink">{req.label}</p>
+                  {req.evidence ? (
+                    <p className="mt-1 text-xs leading-relaxed text-graphite">
+                      {req.evidence}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <section className="mt-8 border-2 border-ink bg-paper p-4 sm:p-5">
+        <h3 className="font-display text-lg font-bold uppercase text-ink">
+          Twoja wypowiedź
+        </h3>
+        <p className="mt-1 font-mono text-xs text-graphite">
+          {cleanTranscript
+            ? `${cleanTranscript.split(/\s+/).filter(Boolean).length} słów`
+            : "Brak nagranej treści"}
+        </p>
+        {cleanTranscript ? (
+          <blockquote className="mt-4 max-h-64 overflow-y-auto border-l-4 border-stamp-red pl-4 text-sm leading-relaxed text-ink sm:text-base">
+            {cleanTranscript}
+          </blockquote>
+        ) : (
+          <p className="mt-4 text-sm italic text-graphite">
+            Nie zarejestrowano wypowiedzi.
+          </p>
+        )}
+
+        {followUps.length > 0 ? (
+          <div className="mt-6 space-y-4 border-t-2 border-ink/15 pt-4">
+            <h4 className="font-display text-sm font-bold uppercase tracking-wide text-ink">
+              Odpowiedzi na pytania dodatkowe
+            </h4>
+            {followUps.map((fu, i) => (
+              <div key={fu.id}>
+                <p className="font-mono text-xs text-stamp-red">
+                  Pytanie {i + 1}
+                </p>
+                <p className="mt-1 text-sm text-graphite">{fu.text}</p>
+                <p className="mt-2 text-sm leading-relaxed text-ink">
+                  {followUpAnswers[i]?.trim()
+                    ? followUpAnswers[i]
+                    : "(brak odpowiedzi)"}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </section>
 
       <ul className="mt-8 space-y-4">
         {evaluation.criteria.map((c) => (
@@ -783,15 +978,107 @@ function ResultStep({
                 {c.points}/{c.maxPoints}
               </p>
             </div>
-            <blockquote className="mt-3 border-l-4 border-gold pl-3 text-sm italic text-ink">
-              „{c.quote}”
-            </blockquote>
-            <p className="mt-2 text-sm leading-relaxed text-graphite">
+            {c.levelLabel ? (
+              <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-graphite">
+                Poziom CKE: {c.levelLabel}
+              </p>
+            ) : null}
+
+            {c.quotes.length > 0 ? (
+              <div className="mt-3 space-y-3">
+                {c.quotes.map((q, i) => (
+                  <div key={i} className="border-l-4 border-gold pl-3">
+                    <p className="text-sm italic text-ink">„{q.text}”</p>
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-graphite">
+                      {q.source === "rozmowa" ? "Z rozmowy" : "Z monologu"}
+                    </p>
+                    {q.comment ? (
+                      <p className="mt-1 text-sm leading-relaxed text-graphite">
+                        {q.comment}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <p className="mt-3 text-sm leading-relaxed text-graphite">
               {c.justification}
             </p>
+
+            {c.strengths.length > 0 || c.improvements.length > 0 ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {c.strengths.length > 0 ? (
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-success">
+                      Mocne strony
+                    </p>
+                    <ul className="mt-1 space-y-1 text-sm text-ink">
+                      {c.strengths.map((s, i) => (
+                        <li key={i}>• {s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {c.improvements.length > 0 ? (
+                  <div>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-stamp-red">
+                      Na wyższy próg
+                    </p>
+                    <ul className="mt-1 space-y-1 text-sm text-ink">
+                      {c.improvements.map((s, i) => (
+                        <li key={i}>• {s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>
+
+      {evaluation.factualErrors.length > 0 ? (
+        <section className="mt-8 border-2 border-stamp-red bg-paper p-4 sm:p-5">
+          <h3 className="font-display text-lg font-bold uppercase text-stamp-red">
+            Błędy rzeczowe
+          </h3>
+          <ul className="mt-3 space-y-3">
+            {evaluation.factualErrors.map((e, i) => (
+              <li key={i}>
+                <p className="font-mono text-[10px] uppercase tracking-wider text-stamp-red">
+                  Błąd {e.type}
+                </p>
+                <p className="mt-1 text-sm italic text-ink">„{e.quote}”</p>
+                <p className="mt-1 text-sm leading-relaxed text-graphite">
+                  {e.explanation}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {evaluation.languageIssues.length > 0 ? (
+        <section className="mt-6 border-2 border-ink bg-paper p-4 sm:p-5">
+          <h3 className="font-display text-lg font-bold uppercase text-ink">
+            Poprawki językowe
+          </h3>
+          <ul className="mt-3 space-y-3">
+            {evaluation.languageIssues.map((e, i) => (
+              <li key={i}>
+                <p className="text-sm italic text-ink">„{e.quote}”</p>
+                <p className="mt-1 text-sm text-graphite">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-stamp-red">
+                    {e.issue}
+                  </span>{" "}
+                  → {e.suggestion}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <Button onClick={onRestart}>Kolejna symulacja</Button>
