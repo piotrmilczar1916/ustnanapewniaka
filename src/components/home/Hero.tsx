@@ -21,7 +21,7 @@ const TRUST_BADGES = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden border-b-2 border-ink bg-paper">
+    <section className="relative overflow-hidden border-b-2 border-ink bg-transparent">
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.035]"
         style={{

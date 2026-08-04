@@ -35,6 +35,75 @@ body {
   font-family: var(--font-ibm-plex), system-ui, sans-serif;
 }
 
+.page-ambient-bg {
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ambient-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  will-change: transform;
+}
+
+.ambient-blob-gold {
+  top: -8%;
+  left: -6%;
+  width: min(52vw, 480px);
+  height: min(52vw, 480px);
+  background: color-mix(in srgb, var(--gold) 42%, transparent);
+  animation: blob-float-a 22s ease-in-out infinite;
+}
+
+.ambient-blob-red {
+  right: -8%;
+  bottom: -6%;
+  width: min(48vw, 440px);
+  height: min(48vw, 440px);
+  background: color-mix(in srgb, var(--stamp-red) 28%, transparent);
+  animation: blob-float-b 26s ease-in-out infinite;
+}
+
+.ambient-blob-ink {
+  top: 38%;
+  left: 42%;
+  width: min(40vw, 360px);
+  height: min(40vw, 360px);
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  animation: blob-float-c 30s ease-in-out infinite;
+}
+
+@keyframes blob-float-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(12vw, 10vh) scale(1.12);
+  }
+}
+
+@keyframes blob-float-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-10vw, -8vh) scale(1.08);
+  }
+}
+
+@keyframes blob-float-c {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-8vw, 6vh) scale(0.92);
+  }
+}
+
 ::selection {
   background: color-mix(in srgb, var(--stamp-red) 22%, transparent);
   color: var(--ink);
@@ -128,6 +197,11 @@ body {
   .komisja-ai-steps > li {
     animation: none !important;
     opacity: 1;
+    transform: none;
+  }
+
+  .page-ambient-bg .ambient-blob {
+    animation: none;
     transform: none;
   }
 

@@ -51,7 +51,7 @@ export function KomisjaAI() {
   return (
     <section
       id="komisja-ai"
-      className="border-b-2 border-ink bg-paper py-16 sm:py-20"
+      className="border-b-2 border-ink bg-transparent py-16 sm:py-20"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">

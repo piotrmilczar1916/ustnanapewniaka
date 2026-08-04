@@ -1,9 +1,8 @@
 import { ButtonLink } from "@/components/ButtonLink";
-import { StampCheck } from "@/components/Stamp";
 
 export function Pricing() {
   return (
-    <section id="cennik" className="border-b-2 border-ink bg-paper py-16 sm:py-20">
+    <section id="cennik" className="border-b-2 border-ink bg-transparent py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
           Cennik
@@ -77,6 +76,18 @@ export function Pricing() {
                 <span className="text-success" aria-hidden>
                   ✓
                 </span>
+                Szczegółowa ocena wypowiedzi według kryteriów CKE
+              </li>
+              <li className="flex gap-2">
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
+                Wszystkie 76 jawnych pytań CKE
+              </li>
+              <li className="flex gap-2">
+                <span className="text-success" aria-hidden>
+                  ✓
+                </span>
                 Pytania jawne i niejawne
               </li>
               <li className="flex gap-2">
@@ -85,16 +96,7 @@ export function Pricing() {
                 </span>
                 Historia wyników na koncie
               </li>
-              <li className="flex gap-2">
-                <span className="text-success" aria-hidden>
-                  ✓
-                </span>
-                Gwarancja zwrotu przy wyniku &lt;60% na maturze
-              </li>
             </ul>
-            <div className="mt-6">
-              <StampCheck label="Gwarancja zwrotu" />
-            </div>
             <ButtonLink href="/cennik" className="mt-8 w-full">
               Kup pełny dostęp
             </ButtonLink>

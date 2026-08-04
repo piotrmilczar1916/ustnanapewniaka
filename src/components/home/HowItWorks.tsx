@@ -23,13 +23,13 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section id="jak-dziala" className="border-b-2 border-ink bg-paper py-16 sm:py-20">
+    <section id="jak-dziala" className="border-b-2 border-ink bg-transparent py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
           Jak to działa
         </h2>
         <p className="mt-2 max-w-2xl text-graphite">
-          Cztery kroki. Zero niespodzianek — pełny przebieg egzaminu ustnego.
+          Cztery kroki. Zero niespodzianek — pełny przebieg matury ustnej z polskiego.
         </p>
 
         <ol className="how-it-works-steps mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 [&:has(>li:hover)_li:not(:hover)]:scale-[0.98] [&:has(>li:hover)_li:not(:hover)]:opacity-55">

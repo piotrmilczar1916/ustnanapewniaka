@@ -16,10 +16,6 @@ const FAQ_ITEMS = [
     a: "Jedną pełną symulację bez logowania: losowanie pytania, wypowiedź, pytania dodatkowe i ocenę z cytatami.",
   },
   {
-    q: "Jak działa gwarancja zwrotu?",
-    a: "Jeśli na maturze ustnej uzyskasz wynik poniżej 60%, możesz ubiegać się o zwrot. Szczegóły procedury i wymagane dokumenty pojawią się w regulaminie — nie zgadujemy tu finalnych zapisów prawnych.",
-  },
-  {
     q: "Czy działa na telefonie?",
     a: "Tak. Aplikacja jest projektowana mobile-first — mikrofon i timer działają w nowoczesnych przeglądarkach mobilnych.",
   },
@@ -37,7 +33,7 @@ export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="border-t-2 border-ink bg-paper-dim py-16 sm:py-20">
+    <section id="faq" className="border-t-2 border-ink bg-transparent py-16 sm:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
           FAQ

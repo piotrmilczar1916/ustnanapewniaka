@@ -185,17 +185,6 @@ export function UserPanel() {
           )}
         </section>
 
-        <section className="border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)]">
-          <h2 className="font-display text-xl font-bold uppercase text-ink">
-            Gwarancja zwrotu
-          </h2>
-          <p className="mt-2 text-sm text-graphite">
-            {/* TODO: procedura prawna */}
-            Po maturze możesz tu podać realny wynik — szczegóły zwrotu
-            wymagają finalnych tekstów prawnych.
-          </p>
-        </section>
-
         <div className="flex flex-wrap gap-3 pt-2">
           <Button
             variant="secondary"

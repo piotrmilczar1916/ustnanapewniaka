@@ -17,7 +17,7 @@ export function Header() {
   const { ready, session } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper/75 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/"

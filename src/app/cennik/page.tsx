@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ButtonLink } from "@/components/ButtonLink";
-import { StampCheck } from "@/components/Stamp";
 
 export const metadata: Metadata = {
   title: "Cennik i płatność",
@@ -38,14 +37,11 @@ export default function CennikPage() {
 
           <ul className="mt-6 space-y-2 text-sm text-graphite">
             <li>✓ Nielimitowane symulacje</li>
+            <li>✓ Szczegółowa ocena wypowiedzi według kryteriów CKE</li>
+            <li>✓ Wszystkie 76 jawnych pytań CKE</li>
             <li>✓ Pytania jawne i niejawne</li>
             <li>✓ Historia wyników</li>
-            <li>✓ Gwarancja zwrotu przy wyniku &lt;60%</li>
           </ul>
-
-          <div className="mt-6">
-            <StampCheck label="Gwarancja zwrotu" />
-          </div>
 
           <div className="mt-8 space-y-3">
             {/* TODO: podłączyć Przelewy24 lub Stripe — decyzja biznesowa */}
