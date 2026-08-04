@@ -7,7 +7,7 @@ const TRUST_BADGES = [
   },
   {
     emoji: "🔥",
-    text: "Ocena wg aktualnych kryteriów CKE",
+    text: "Zgodne z wymaganiami CKE na rok 2027",
   },
   {
     emoji: "✅",
