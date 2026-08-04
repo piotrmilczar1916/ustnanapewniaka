@@ -8,7 +8,7 @@ const FAQ_ITEMS = [
     a: "Nie. UstnaNaPewniaka.pl to niezależny trening egzaminacyjny. Kryteria oceny bazują na oficjalnych wytycznych CKE, ale produkt nie jest powiązany z CKE.",
   },
   {
-    q: "Ile kosztuje pełny dostęp?",
+    q: "Ile kosztuje plan Max?",
     a: "49,99 zł jednorazowo — bez subskrypcji. Po płatności masz nielimitowane symulacje do dnia egzaminu ustnego.",
   },
   {

@@ -66,7 +66,7 @@ export function UserPanel() {
           </div>
           <Stamp
             size={72}
-            label={isFull ? "FULL" : "FREE"}
+            label={isFull ? "MAX" : "FREE"}
             sublabel="PLAN"
             tone={isFull ? "gold" : "ink"}
           />
@@ -191,7 +191,7 @@ export function UserPanel() {
           </h2>
           {isFull ? (
             <p className="mt-2 text-sm text-graphite">
-              Pełny dostęp — nielimitowane symulacje
+              Max — nielimitowane symulacje
               {user.accessUntil
                 ? ` do ${new Intl.DateTimeFormat("pl-PL").format(new Date(user.accessUntil))}`
                 : ""}
@@ -204,7 +204,7 @@ export function UserPanel() {
                 49,99&nbsp;zł.
               </p>
               <ButtonLink href="/cennik" className="mt-4">
-                Kup pełny dostęp
+                Kup Max
               </ButtonLink>
             </>
           )}

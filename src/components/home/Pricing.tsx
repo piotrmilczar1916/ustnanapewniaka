@@ -57,7 +57,7 @@ export function Pricing() {
               Plan
             </p>
             <h3 className="mt-1 font-display text-3xl font-extrabold uppercase text-ink">
-              Pełny dostęp
+              Max
             </h3>
             <p className="mt-4 font-mono text-4xl font-semibold text-ink">
               49,99&nbsp;zł
@@ -98,7 +98,7 @@ export function Pricing() {
               </li>
             </ul>
             <ButtonLink href="/cennik" className="mt-8 w-full">
-              Kup pełny dostęp
+              Kup Max
             </ButtonLink>
           </article>
         </div>

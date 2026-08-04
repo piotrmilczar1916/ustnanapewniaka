@@ -4,7 +4,7 @@ import { ButtonLink } from "@/components/ButtonLink";
 export const metadata: Metadata = {
   title: "Cennik i płatność",
   description:
-    "Pełny dostęp do UstnaNaPewniaka.pl — 49,99 zł jednorazowo, bez subskrypcji.",
+    "Plan Max — UstnaNaPewniaka.pl, 49,99 zł jednorazowo, bez subskrypcji.",
 };
 
 export default function CennikPage() {
@@ -15,7 +15,7 @@ export default function CennikPage() {
           Checkout
         </p>
         <h1 className="mt-1 font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
-          Pełny dostęp
+          Max
         </h1>
         <p className="mt-3 text-graphite">
           Jednorazowa opłata 49,99&nbsp;zł. Bez subskrypcji. Nielimitowane
@@ -26,7 +26,7 @@ export default function CennikPage() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="font-display text-2xl font-bold uppercase text-ink">
-                UstnaNaPewniaka · Full
+                UstnaNaPewniaka · Max
               </p>
               <p className="mt-1 text-sm text-graphite">
                 Dostęp do dnia egzaminu 2026/2027

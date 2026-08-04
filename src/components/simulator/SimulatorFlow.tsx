@@ -1170,7 +1170,7 @@ function ResultStep({
           </ButtonLink>
         ) : (
           <ButtonLink href="/cennik" variant="secondary">
-            Odblokuj pełny dostęp
+            Odblokuj Max
           </ButtonLink>
         )}
       </div>
