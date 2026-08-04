@@ -50,9 +50,17 @@ export function HowItWorks() {
   return (
     <section id="jak-dziala" className="border-b-2 border-ink bg-transparent py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
-          Jak to działa
-        </h2>
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
+            Jak to działa
+          </h2>
+          <span
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center border-2 border-ink bg-stamp-red font-display text-2xl font-extrabold leading-none text-paper shadow-[3px_3px_0_var(--ink)] sm:h-11 sm:w-11 sm:text-3xl"
+            aria-hidden
+          >
+            ?
+          </span>
+        </div>
         <p className="mt-2 max-w-2xl text-graphite">
           Cztery kroki. Zero niespodzianek — pełny przebieg matury ustnej z polskiego.
         </p>

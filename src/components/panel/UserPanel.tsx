@@ -79,11 +79,6 @@ export function UserPanel() {
         <ButtonLink href="/panel/pytania-jawne" variant="secondary">
           76 pytań jawnych
         </ButtonLink>
-        {!isFull ? (
-          <ButtonLink href="/cennik" variant="ghost">
-            Pełny dostęp · 49,99 zł
-          </ButtonLink>
-        ) : null}
       </div>
 
       {/* Statystyki */}
