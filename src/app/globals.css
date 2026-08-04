@@ -194,6 +194,7 @@ body {
     transform: none;
   }
 
+  .how-it-works-steps > li,
   .komisja-ai-steps > li {
     animation: none !important;
     opacity: 1;

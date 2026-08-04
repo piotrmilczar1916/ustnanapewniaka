@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 const STEPS = [
   {
     n: "01",
@@ -22,6 +26,27 @@ const STEPS = [
 ];
 
 export function HowItWorks() {
+  const listRef = useRef<HTMLOListElement>(null);
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    const node = listRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setRevealed(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section id="jak-dziala" className="border-b-2 border-ink bg-transparent py-16 sm:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -32,11 +57,21 @@ export function HowItWorks() {
           Cztery kroki. Zero niespodzianek — pełny przebieg matury ustnej z polskiego.
         </p>
 
-        <ol className="how-it-works-steps mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 [&:has(>li:hover)_li:not(:hover)]:scale-[0.98] [&:has(>li:hover)_li:not(:hover)]:opacity-55">
-          {STEPS.map((step) => (
+        <ol
+          ref={listRef}
+          className="how-it-works-steps mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 [&:has(>li:hover)_li:not(:hover)]:scale-[0.98] [&:has(>li:hover)_li:not(:hover)]:opacity-55"
+        >
+          {STEPS.map((step, index) => (
             <li
               key={step.n}
-              className="group/step border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)] transition-[transform,box-shadow,background-color,border-color,opacity] duration-200 ease-out hover:-translate-y-1.5 hover:border-stamp-red hover:bg-paper hover:shadow-[6px_6px_0_var(--stamp-red)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              className={[
+                "group/step border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)]",
+                "transition-[transform,box-shadow,background-color,border-color,opacity] duration-200 ease-out",
+                "hover:-translate-y-1.5 hover:border-stamp-red hover:bg-paper hover:shadow-[6px_6px_0_var(--stamp-red)]",
+                "motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+                revealed ? "animate-slide-up-reveal" : "translate-y-7 opacity-0",
+              ].join(" ")}
+              style={revealed ? { animationDelay: `${index * 0.1}s` } : undefined}
             >
               <p className="inline-block font-mono text-sm text-stamp-red transition-[color,background-color,transform] duration-200 group-hover/step:scale-110 group-hover/step:bg-stamp-red group-hover/step:px-2 group-hover/step:py-0.5 group-hover/step:text-paper">
                 {step.n}
