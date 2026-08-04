@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function PytaniaJawnePage() {
   return (
-    <div className="border-b-2 border-ink bg-paper">
+    <div className="border-b border-ink/15 bg-transparent">
       <PytaniaJawnePageClient />
     </div>
   );

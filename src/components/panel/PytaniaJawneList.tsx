@@ -74,7 +74,7 @@ export function PytaniaJawneList() {
         </ButtonLink>
       </div>
 
-      <div className="mt-8 border-2 border-ink bg-paper-dim p-4 shadow-[4px_4px_0_var(--ink)] sm:p-5">
+      <div className="mt-8 border border-ink/15 bg-paper p-4 sm:p-5">
         <label className="block">
           <span className="font-display text-sm font-bold uppercase tracking-wide text-ink">
             Szukaj
@@ -84,7 +84,7 @@ export function PytaniaJawneList() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="np. Lalka, wolność, 42…"
-            className="mt-2 w-full border-2 border-ink bg-paper px-3 py-3 text-ink placeholder:text-graphite/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stamp-red"
+            className="mt-2 w-full border border-ink/20 bg-paper px-3 py-3 text-ink placeholder:text-graphite/50 focus-visible:border-ink/40 focus-visible:outline-none"
           />
         </label>
         <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -110,7 +110,7 @@ export function PytaniaJawneList() {
 
       <div className="mt-8 space-y-3">
         {filteredGroups.length === 0 ? (
-          <p className="border-2 border-dashed border-ink/30 bg-paper p-6 text-sm text-graphite">
+          <p className="border border-dashed border-ink/20 bg-paper p-6 text-sm text-graphite">
             Brak wyników dla „{query}”.
           </p>
         ) : (
@@ -121,7 +121,7 @@ export function PytaniaJawneList() {
             return (
               <section
                 key={group.lektura}
-                className="border-2 border-ink bg-paper-dim shadow-[4px_4px_0_var(--ink)]"
+                className="border border-ink/15 bg-paper"
               >
                 <h2>
                   <button
@@ -129,19 +129,19 @@ export function PytaniaJawneList() {
                     aria-expanded={open}
                     aria-controls={panelId}
                     onClick={() => toggleLektura(group.lektura)}
-                    className="flex w-full min-h-14 items-center justify-between gap-3 bg-ink px-4 py-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold sm:px-5"
+                    className="flex w-full min-h-12 items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-paper-dim/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink/30 sm:px-5"
                   >
                     <span>
-                      <span className="block font-display text-lg font-bold uppercase tracking-wide text-paper sm:text-xl">
+                      <span className="block font-display text-base font-bold uppercase tracking-wide text-ink sm:text-lg">
                         {group.lektura}
                       </span>
-                      <span className="mt-1 block font-mono text-xs text-gold">
+                      <span className="mt-0.5 block font-mono text-xs text-graphite">
                         {group.questions.length}{" "}
                         {group.questions.length === 1 ? "pytanie" : "pytań"}
                       </span>
                     </span>
                     <span
-                      className="font-mono text-xl text-gold"
+                      className="font-mono text-lg text-graphite/70"
                       aria-hidden
                     >
                       {open ? "−" : "+"}
@@ -150,24 +150,25 @@ export function PytaniaJawneList() {
                 </h2>
 
                 {open ? (
-                  <ol id={panelId} className="divide-y-2 divide-ink/15">
+                  <ol id={panelId} className="divide-y divide-ink/10 border-t border-ink/10">
                     {group.questions.map((item) => (
                       <li
                         key={item.number}
-                        className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-5"
+                        className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-5"
                       >
                         <div className="flex min-w-0 flex-1 gap-3 sm:gap-4">
-                          <span className="font-mono text-sm font-semibold tabular-nums text-stamp-red">
+                          <span className="font-mono text-sm tabular-nums text-graphite">
                             {String(item.number).padStart(2, "0")}
                           </span>
-                          <p className="text-sm leading-relaxed text-ink sm:text-base">
+                          <p className="text-sm leading-relaxed text-ink">
                             {item.title}
                           </p>
                         </div>
                         <ButtonLink
                           href={`/symulacja?pytanie=${item.number}`}
+                          variant="secondary"
                           size="sm"
-                          className="shrink-0 self-stretch sm:self-start"
+                          className="shrink-0 self-stretch shadow-none sm:self-start"
                         >
                           Ćwicz
                         </ButtonLink>
