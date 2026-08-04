@@ -128,26 +128,6 @@ export function UserPanel() {
       </dl>
 
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
-        {/* Rekomendacja */}
-        <section className="border-2 border-ink bg-ink p-5 text-paper shadow-[4px_4px_0_var(--stamp-red)] lg:col-span-2">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-gold">
-            Rekomendacja treningowa
-          </p>
-          <h2 className="mt-2 font-display text-xl font-bold uppercase tracking-wide">
-            {insights.recommendation.title}
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-paper/80">
-            {insights.recommendation.text}
-          </p>
-          <ButtonLink
-            href={insights.recommendation.href}
-            variant="secondary"
-            className="mt-4 border-paper bg-paper text-ink hover:bg-paper-dim"
-          >
-            {insights.recommendation.action}
-          </ButtonLink>
-        </section>
-
         {/* Wykres trendu */}
         <section className="border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)]">
           <h2 className="font-display text-lg font-bold uppercase text-ink">

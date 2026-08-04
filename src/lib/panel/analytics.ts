@@ -24,9 +24,7 @@ export interface PanelInsights {
   passedSessions: number;
   streakDays: number;
   criterionAverages: CriterionAverage[];
-  weakestCriterion: CriterionAverage | null;
   recentTrend: Array<{ label: string; percentage: number; date: string }>;
-  recommendation: { title: string; text: string; action: string; href: string };
 }
 
 function parseQuestionNumber(code: string): number | null {
@@ -65,49 +63,6 @@ function computeStreak(results: SessionResult[]): number {
     else break;
   }
   return streak;
-}
-
-function buildRecommendation(
-  weakest: CriterionAverage | null,
-  results: SessionResult[],
-): PanelInsights["recommendation"] {
-  if (results.length === 0) {
-    return {
-      title: "Pierwszy krok",
-      text: "Zrób darmową symulację — po niej zobaczysz tu analizę kryteriów CKE i rekomendacje dopasowane do Twoich wyników.",
-      action: "Zacznij symulację",
-      href: "/symulacja",
-    };
-  }
-
-  const last = results[0]!;
-  if (last.percentage < CKE_PASS_PERCENT) {
-    return {
-      title: "Priorytet: próg zdawalności",
-      text: `Ostatnia sesja: ${last.percentage}% — poniżej progu 30% CKE. Powtórz to samo pytanie lub wylosuj nowe i skup się na ${weakest?.label.toLowerCase() ?? "merytoryce"}.`,
-      action: "Ćwicz ponownie",
-      href: "/symulacja",
-    };
-  }
-
-  const tips: Record<string, string> = {
-    meritum:
-      "W kolejnej sesji buduj tezę, odwołuj się do lektury i dodaj funkcjonalny kontekst — to największy pakiet punktów.",
-    kompozycja:
-      "Zadbaj o wyraźny wstęp, rozwinięcie z przykładami i krótkie zakończenie z wnioskiem.",
-    rozmowa:
-      "Rozwijaj odpowiedzi w rozmowie z komisją — unikaj ogólników, doprecyzowuj pojęcia.",
-    jezyk:
-      "Poszerz słownictwo: synonimy, terminologia literacka i zdania złożone poprawią ocenę językową.",
-  };
-
-  const id = weakest?.id ?? "meritum";
-  return {
-    title: `Wzmocnij: ${weakest?.label ?? "Meritum"}`,
-    text: tips[id] ?? tips.meritum!,
-    action: "Losuj pytanie",
-    href: "/symulacja",
-  };
 }
 
 export function computePanelInsights(results: SessionResult[]): PanelInsights {
@@ -163,14 +118,6 @@ export function computePanelInsights(results: SessionResult[]): PanelInsights {
     };
   });
 
-  const withData = criterionAverages.filter((c) => c.sessions > 0);
-  const weakestCriterion =
-    withData.length > 0
-      ? withData.reduce((min, c) =>
-          c.averagePercent < min.averagePercent ? c : min,
-        )
-      : null;
-
   const recentTrend = [...results]
     .slice(0, 6)
     .reverse()
@@ -186,8 +133,6 @@ export function computePanelInsights(results: SessionResult[]): PanelInsights {
     passedSessions,
     streakDays: computeStreak(results),
     criterionAverages,
-    weakestCriterion,
     recentTrend,
-    recommendation: buildRecommendation(weakestCriterion, results),
   };
 }
