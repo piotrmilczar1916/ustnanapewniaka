@@ -79,6 +79,17 @@ body {
   }
 }
 
+@keyframes slide-up-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-stamp-in {
   animation: stamp-in 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -99,12 +110,23 @@ body {
   animation: fade-up 0.5s ease-out 0.24s both;
 }
 
+.animate-slide-up-reveal {
+  animation: slide-up-reveal 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  .how-it-works-steps:has(> li:hover) > li:not(:hover) {
+  .how-it-works-steps:has(> li:hover) > li:not(:hover),
+  .komisja-ai-steps:has(> li:hover) > li:not(:hover) {
+    opacity: 1;
+    transform: none;
+  }
+
+  .komisja-ai-steps > li {
+    animation: none !important;
     opacity: 1;
     transform: none;
   }
@@ -113,7 +135,8 @@ body {
   .animate-stamp-press,
   .animate-fade-up,
   .animate-fade-up-delay-1,
-  .animate-fade-up-delay-2 {
+  .animate-fade-up-delay-2,
+  .animate-slide-up-reveal {
     animation: none;
     opacity: 1;
     transform: none;

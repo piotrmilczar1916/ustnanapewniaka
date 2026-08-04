@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import { Stamp } from "@/components/Stamp";
 
 const POINTS = [
@@ -8,8 +11,8 @@ const POINTS = [
   },
   {
     n: "02",
-    title: "Pyta jak żywa komisja",
-    text: "Pytania dodatkowe powstają z Twoich słów, argumentów i luk. To kluczowa różnica względem kursów ze sztywnym skryptem.",
+    title: "Pyta tylko, gdy trzeba",
+    text: "Najpierw analizuje kompletność wypowiedzi. Jeśli wyczerpałeś temat — przechodzi do oceny bez pytań. Jeśli czegoś brakuje — dopytuje wyłącznie o tę lukę.",
   },
   {
     n: "03",
@@ -24,6 +27,27 @@ const POINTS = [
 ];
 
 export function KomisjaAI() {
+  const listRef = useRef<HTMLOListElement>(null);
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    const node = listRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setRevealed(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       id="komisja-ai"
@@ -47,17 +71,29 @@ export function KomisjaAI() {
           <Stamp size={100} label="AI" sublabel="KOMISJA" tone="red" />
         </div>
 
-        <ol className="mt-10 grid gap-4 sm:grid-cols-2">
-          {POINTS.map((point) => (
+        <ol
+          ref={listRef}
+          className="komisja-ai-steps mt-10 grid gap-4 sm:grid-cols-2 [&:has(>li:hover)_li:not(:hover)]:scale-[0.98] [&:has(>li:hover)_li:not(:hover)]:opacity-55"
+        >
+          {POINTS.map((point, index) => (
             <li
               key={point.n}
-              className="border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)]"
+              className={[
+                "group/point border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)]",
+                "transition-[transform,box-shadow,background-color,border-color,opacity] duration-200 ease-out",
+                "hover:-translate-y-1.5 hover:border-stamp-red hover:bg-paper hover:shadow-[6px_6px_0_var(--stamp-red)]",
+                "motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+                revealed ? "animate-slide-up-reveal" : "translate-y-7 opacity-0",
+              ].join(" ")}
+              style={revealed ? { animationDelay: `${index * 0.1}s` } : undefined}
             >
-              <p className="font-mono text-sm text-stamp-red">{point.n}</p>
-              <h3 className="mt-2 font-display text-xl font-bold uppercase tracking-wide text-ink">
+              <p className="inline-block font-mono text-sm text-stamp-red transition-[color,background-color,transform] duration-200 group-hover/point:scale-110 group-hover/point:bg-stamp-red group-hover/point:px-2 group-hover/point:py-0.5 group-hover/point:text-paper">
+                {point.n}
+              </p>
+              <h3 className="mt-2 font-display text-xl font-bold uppercase tracking-wide text-ink transition-colors duration-200 group-hover/point:text-stamp-red">
                 {point.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-graphite sm:text-base">
+              <p className="mt-2 text-sm leading-relaxed text-graphite transition-colors duration-200 group-hover/point:text-ink sm:text-base">
                 {point.text}
               </p>
             </li>

@@ -27,6 +27,18 @@ export interface FollowUpQuestion {
   text: string;
   /** Fragment wypowiedzi, z którego wynika pytanie */
   basedOnQuote?: string;
+  /** Czego brakuje w wypowiedzi — uzasadnienie pytania */
+  targetsGap?: string;
+}
+
+/** Wynik analizy komisji: czy w ogóle zadawać pytania dodatkowe */
+export interface FollowUpAnalysis {
+  needsFollowUp: boolean;
+  /** Gdy needsFollowUp=false — dlaczego komisja nie dopytuje */
+  skipReason?: string;
+  /** Wykryte luki w wypowiedzi (gdy needsFollowUp=true) */
+  gaps?: Array<{ element: string; description: string }>;
+  questions: FollowUpQuestion[];
 }
 
 export type CriterionId = "meritum" | "kompozycja" | "rozmowa" | "jezyk";

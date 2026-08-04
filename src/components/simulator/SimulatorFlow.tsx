@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import type {
   EvaluationResult,
   ExamSubject,
+  FollowUpAnalysis,
   FollowUpQuestion,
   Question,
   QuestionKind,
@@ -65,6 +66,9 @@ export function SimulatorFlow() {
   const [preparingQuestions, setPreparingQuestions] = useState(false);
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
+  const [followUpSkipReason, setFollowUpSkipReason] = useState<string | null>(
+    null,
+  );
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const recordTimerRef = useRef<number | null>(null);
@@ -92,6 +96,7 @@ export function SimulatorFlow() {
     setCurrentFollowUpAnswer("");
     setEvaluating(false);
     setEvaluation(null);
+    setFollowUpSkipReason(null);
     setStep("prep");
   }, [pytanieParam]);
 
@@ -224,6 +229,7 @@ export function SimulatorFlow() {
     setFollowUpIndex(0);
     setFollowUpAnswers([]);
     setCurrentFollowUpAnswer("");
+    setFollowUpSkipReason(null);
     setPreparingQuestions(true);
     setStep("followup");
 
@@ -234,16 +240,42 @@ export function SimulatorFlow() {
         body: JSON.stringify({
           questionTitle: question?.title ?? "",
           questionKind: questionKind ?? "jawne",
+          cultureTextHint: question?.cultureTextHint,
           transcript: text,
         }),
       });
-      const data = (await response.json()) as { questions?: FollowUpQuestion[] };
-      setFollowUps(data.questions ?? []);
+      const data = (await response.json()) as FollowUpAnalysis;
+      const questions = data.questions ?? [];
+
+      if (!data.needsFollowUp) {
+        const reason =
+          data.skipReason ??
+          "Wypowiedź wyczerpała wymagane elementy polecenia — komisja przechodzi do oceny.";
+        setFollowUps([]);
+        setFollowUpSkipReason(reason);
+        setPreparingQuestions(false);
+        void runEvaluation([], { skipped: true, skipReason: reason });
+        return;
+      }
+
+      if (questions.length === 0) {
+        setFollowUps([
+          {
+            id: "fu-1",
+            text: "Proszę uzupełnić brakujący element wypowiedzi — odwołaj się do konkretnego fragmentu utworu.",
+            targetsGap: "argumentacja",
+          },
+        ]);
+        return;
+      }
+
+      setFollowUps(questions);
     } catch {
       setFollowUps([
         {
           id: "fu-1",
-          text: "Rozwiń najważniejszy argument ze swojej wypowiedzi i uzasadnij go odwołaniem do tekstu.",
+          text: "Rozwiń najważniejszy brakujący element swojej wypowiedzi i uzasadnij go odwołaniem do tekstu.",
+          targetsGap: "argumentacja",
         },
       ]);
     } finally {
@@ -251,7 +283,10 @@ export function SimulatorFlow() {
     }
   }
 
-  async function runEvaluation(answers: string[]) {
+  async function runEvaluation(
+    answers: string[],
+    options?: { skipped?: boolean; skipReason?: string },
+  ) {
     setEvaluating(true);
     setEvaluationError(null);
     try {
@@ -268,6 +303,8 @@ export function SimulatorFlow() {
             question: fu.text,
             answer: answers[i] ?? "",
           })),
+          dialogueSkipped: options?.skipped ?? false,
+          dialogueSkipReason: options?.skipReason,
         }),
       });
       if (!response.ok) throw new Error("Ocena nie powiodła się.");
@@ -314,6 +351,7 @@ export function SimulatorFlow() {
     setEvaluating(false);
     setPreparingQuestions(false);
     setEvaluation(null);
+    setFollowUpSkipReason(null);
   }
 
   return (
@@ -400,7 +438,11 @@ export function SimulatorFlow() {
         )}
 
         {step === "followup" &&
-          (preparingQuestions || !followUps[followUpIndex] ? (
+          (preparingQuestions ? (
+            <PreparingQuestions />
+          ) : evaluating && followUps.length === 0 ? (
+            <EvaluatingCommission skipReason={followUpSkipReason} />
+          ) : !followUps[followUpIndex] ? (
             <PreparingQuestions />
           ) : (
             <FollowUpStep
@@ -424,6 +466,7 @@ export function SimulatorFlow() {
             transcript={transcript}
             followUpAnswers={followUpAnswers}
             followUps={followUps}
+            followUpSkipReason={followUpSkipReason}
             onRestart={resetFlow}
           />
         )}
@@ -692,6 +735,30 @@ function RecordStep({
   );
 }
 
+function EvaluatingCommission({
+  skipReason,
+}: {
+  skipReason: string | null;
+}) {
+  return (
+    <div className="py-6 text-center">
+      <p className="font-mono text-xs uppercase tracking-[0.18em] text-gold">
+        Komisja AI
+      </p>
+      <h2 className="mt-2 font-display text-2xl font-bold uppercase text-ink">
+        {skipReason
+          ? "Wypowiedź kompletna — przechodzę do oceny"
+          : "Przygotowuję ocenę…"}
+      </h2>
+      {skipReason ? (
+        <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-graphite">
+          {skipReason}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function FollowUpStep({
   question,
   index,
@@ -722,8 +789,15 @@ function FollowUpStep({
         Pytanie dodatkowe
       </h2>
       <p className="mt-2 text-sm text-graphite">
-        Generowane na podstawie Twojej wypowiedzi — nie ze sztywnego skryptu.
+        Komisja wykryła lukę w wypowiedzi i dopytuje tylko o to, czego brakuje
+        — tak jak na prawdziwym egzaminie.
       </p>
+
+      {question.targetsGap ? (
+        <p className="mt-4 font-mono text-[10px] uppercase tracking-wider text-stamp-red">
+          Brakuje: {question.targetsGap}
+        </p>
+      ) : null}
 
       {question.basedOnQuote ? (
         <div className="mt-6 border-l-4 border-gold bg-paper/60 py-2 pl-3">
@@ -784,9 +858,9 @@ function PreparingQuestions() {
       <h2 className="mt-2 font-display text-2xl font-bold uppercase text-ink">
         Analizuję Twoją wypowiedź…
       </h2>
-      <p className="mt-3 text-sm text-graphite">
-        Komisja czyta transkrypcję i układa pytania dotyczące tego, co
-        faktycznie powiedziałeś.
+      <p className="mt-2 text-sm text-graphite">
+        Komisja sprawdza, czy wyczerpałeś zagadnienie, lekturę i kontekst —
+        i decyduje, czy w ogóle zadawać pytania dodatkowe.
       </p>
     </div>
   );
@@ -799,6 +873,7 @@ function ResultStep({
   transcript,
   followUpAnswers,
   followUps,
+  followUpSkipReason,
   onRestart,
 }: {
   evaluation: EvaluationResult;
@@ -807,6 +882,7 @@ function ResultStep({
   transcript: string;
   followUpAnswers: string[];
   followUps: FollowUpQuestion[];
+  followUpSkipReason: string | null;
   onRestart: () => void;
 }) {
   const { user, addSessionResult } = useAuth();
@@ -895,6 +971,12 @@ function ResultStep({
       <p className="mt-3 text-sm leading-relaxed text-graphite">
         {evaluation.summary}
       </p>
+
+      {followUpSkipReason && followUps.length === 0 ? (
+        <p className="mt-4 border-l-4 border-success bg-paper/60 py-2 pl-3 text-sm leading-relaxed text-ink">
+          Komisja nie zadawała pytań dodatkowych: {followUpSkipReason}
+        </p>
+      ) : null}
 
       {evaluation.requirements.length > 0 ? (
         <ul className="mt-6 grid gap-2 sm:grid-cols-2">

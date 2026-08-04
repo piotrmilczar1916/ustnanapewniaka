@@ -3,6 +3,7 @@ import { countWords } from "@/lib/cke/verify";
 import type {
   CriterionScore,
   EvaluationResult,
+  FollowUpAnalysis,
   FollowUpQuestion,
 } from "@/lib/types";
 
@@ -96,8 +97,100 @@ export function emptyEvaluation(summary: string): EvaluationResult {
   };
 }
 
-/** Pytania zapasowe, gdy model jest niedostępny. */
-export function heuristicFollowUps(transcript: string): FollowUpQuestion[] {
+/** Analiza kompletności wypowiedzi — tryb offline bez klucza API. */
+export function analyzeFollowUpsHeuristic(input: {
+  transcript: string;
+  questionKind: "jawne" | "niejawne";
+  questionTitle: string;
+}): FollowUpAnalysis {
+  const clean = input.transcript.trim();
+  const words = countWords(clean);
+
+  if (!clean || words < 15) {
+    return {
+      needsFollowUp: true,
+      gaps: [
+        {
+          element: "wypowiedź monologowa",
+          description: "Brak wypowiedzi lub wypowiedź zbyt krótka, by wyczerpać temat.",
+        },
+      ],
+      questions: heuristicFollowUpQuestions(clean),
+    };
+  }
+
+  const hasStructure =
+    /\b(wstęp|zakończenie|podsumowując|dlatego|w konkluzji)\b/i.test(clean) ||
+    words >= 120;
+  const hasLiteraryRef =
+    /\b(bohater|bohaterka|utwór|lektura|fragment|scena|autor|w\s+„|w\s+")/i.test(
+      clean,
+    );
+  const hasContext =
+    /\b(kontekst|epoka|historia|filozof|mitolog|bibl|spektakl|film|porówn)/i.test(
+      clean,
+    );
+  const hasArgument =
+    words >= 80 &&
+    (/\b(bo|ponieważ|dlatego|argument|teza|uzasadn|przykład)\b/i.test(clean) ||
+      clean.split(/[.!?]/).filter((s) => s.trim().length > 20).length >= 3);
+
+  const jawneComplete =
+    input.questionKind === "jawne" &&
+    hasLiteraryRef &&
+    hasContext &&
+    hasArgument &&
+    hasStructure &&
+    words >= 100;
+
+  const niejawneComplete =
+    input.questionKind === "niejawne" &&
+    hasLiteraryRef &&
+    hasArgument &&
+    hasStructure &&
+    words >= 90;
+
+  if (jawneComplete || niejawneComplete) {
+    return {
+      needsFollowUp: false,
+      skipReason:
+        "Wypowiedź zawiera odwołanie do tekstu, argumentację i wymagane elementy polecenia — w trybie offline komisja nie dopytuje. Pełna analiza wymaga klucza API.",
+      gaps: [],
+      questions: [],
+    };
+  }
+
+  const gaps: Array<{ element: string; description: string }> = [];
+  if (!hasLiteraryRef) {
+    gaps.push({
+      element: "lektura / tekst",
+      description: "Brak konkretnego odwołania do utworu wskazanego w poleceniu.",
+    });
+  }
+  if (input.questionKind === "jawne" && !hasContext) {
+    gaps.push({
+      element: "kontekst",
+      description: "Brak funkcjonalnego kontekstu poszerzającego omawiane zagadnienie.",
+    });
+  }
+  if (!hasArgument) {
+    gaps.push({
+      element: "argumentacja",
+      description: "Argumentacja jest zbyt ogólnikowa lub zbyt krótka.",
+    });
+  }
+
+  return {
+    needsFollowUp: true,
+    gaps,
+    questions: heuristicFollowUpQuestions(clean, gaps[0]?.element),
+  };
+}
+
+function heuristicFollowUpQuestions(
+  transcript: string,
+  primaryGap?: string,
+): FollowUpQuestion[] {
   const clean = transcript.trim();
 
   if (!clean) {
@@ -105,27 +198,50 @@ export function heuristicFollowUps(transcript: string): FollowUpQuestion[] {
       {
         id: "fu-1",
         text: "Nie usłyszeliśmy Twojej wypowiedzi. Czy możesz przedstawić tezę i odwołać się do wskazanej lektury?",
-      },
-      {
-        id: "fu-2",
-        text: "Jaki kontekst wybrałbyś do tego zagadnienia i dlaczego akurat ten?",
+        targetsGap: "wypowiedź monologowa",
       },
     ];
   }
 
   const firstSentence = clean.split(/(?<=[.!?])\s+/)[0]?.trim() ?? clean;
   const snippet =
-    firstSentence.length > 140 ? `${firstSentence.slice(0, 140)}…` : firstSentence;
+    firstSentence.length > 120 ? `${firstSentence.slice(0, 120)}…` : firstSentence;
+
+  if (primaryGap === "kontekst") {
+    return [
+      {
+        id: "fu-1",
+        text: "Nie usłyszeliśmy w Twojej wypowiedzi kontekstu poszerzającego zagadnienie. Jaki kontekst — literacki, historyczny lub kulturowy — wybrałbyś i dlaczego?",
+        targetsGap: "kontekst",
+      },
+    ];
+  }
+
+  if (primaryGap === "lektura / tekst") {
+    return [
+      {
+        id: "fu-1",
+        text: "Proszę odwołać się do konkretnego fragmentu lub sceny z utworu wskazanego w poleceniu i wyjaśnić, jak ilustruje Twoją tezę.",
+        targetsGap: "lektura / tekst",
+      },
+    ];
+  }
 
   return [
     {
       id: "fu-1",
-      text: `Powiedziałeś: „${snippet}”. Jak uzasadnisz to stanowisko odwołaniem do konkretnej sceny lub fragmentu utworu?`,
+      text: `Powiedziałeś: „${snippet}”. Proszę rozwinąć ten wątek odwołaniem do konkretnego przykładu z tekstu.`,
       basedOnQuote: firstSentence,
-    },
-    {
-      id: "fu-2",
-      text: "Jaki inny kontekst — historyczny, filozoficzny lub kulturowy — potwierdza albo podważa Twoją tezę?",
+      targetsGap: primaryGap ?? "argumentacja",
     },
   ];
+}
+
+/** @deprecated Użyj analyzeFollowUpsHeuristic */
+export function heuristicFollowUps(transcript: string): FollowUpQuestion[] {
+  return analyzeFollowUpsHeuristic({
+    transcript,
+    questionKind: "jawne",
+    questionTitle: "",
+  }).questions;
 }

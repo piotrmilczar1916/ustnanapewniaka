@@ -15,6 +15,8 @@ interface RequestBody {
   cultureTextHint?: string;
   transcript?: string;
   dialogue?: Array<{ question?: string; answer?: string }>;
+  dialogueSkipped?: boolean;
+  dialogueSkipReason?: string;
 }
 
 export async function POST(request: Request) {
@@ -54,6 +56,8 @@ export async function POST(request: Request) {
       cultureTextHint: body.cultureTextHint,
       transcript,
       dialogue,
+      dialogueSkipped: Boolean(body.dialogueSkipped),
+      dialogueSkipReason: body.dialogueSkipReason,
     });
     return Response.json(evaluation);
   } catch (error) {

@@ -42,7 +42,11 @@ export function Hero() {
 
         <p className="animate-fade-up-delay-2 mt-8 max-w-xl text-base leading-relaxed text-graphite sm:text-lg">
           Losujesz pytanie, mówisz na czas jak przed komisją, a AI ocenia
-          wypowiedź wg 4 kryteriów CKE — cytując to, co faktycznie powiedziałeś.
+          wypowiedź wg 4 kryteriów{" "}
+          <span className="font-semibold text-ink underline decoration-stamp-red decoration-2 underline-offset-[3px]">
+            CKE
+          </span>{" "}
+          — cytując to, co faktycznie powiedziałeś.
         </p>
 
         <div className="animate-fade-up-delay-2 mt-8 flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center">

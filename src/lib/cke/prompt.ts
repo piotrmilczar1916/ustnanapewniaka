@@ -8,6 +8,9 @@ export interface EvaluationInput {
   cultureTextHint?: string;
   transcript: string;
   dialogue: Array<{ question: string; answer: string }>;
+  /** Komisja nie zadawała pytań, bo monolog był kompletny */
+  dialogueSkipped?: boolean;
+  dialogueSkipReason?: string;
 }
 
 export const EVALUATION_SYSTEM_PROMPT = `Jesteś doświadczonym egzaminatorem CKE oceniającym część ustną egzaminu maturalnego z języka polskiego (Formuła 2023). Oceniasz surowo, rzetelnie i wyłącznie na podstawie dostarczonej transkrypcji.
@@ -39,7 +42,17 @@ export function buildEvaluationPrompt(input: EvaluationInput): string {
               }`,
           )
           .join("\n\n")
-      : "(rozmowa nie odbyła się)";
+      : input.dialogueSkipped
+        ? `(rozmowa nie odbyła się — komisja uznała wypowiedź monologową za kompletną i nie zadawała pytań dodatkowych. Powód: ${input.dialogueSkipReason ?? "wypowiedź wyczerpała wymagane elementy polecenia"})`
+        : "(rozmowa nie odbyła się)";
+
+  const dialogueScoringNote = input.dialogueSkipped
+    ? `
+SPECJALNA SYTUACJA — brak rozmowy z komisją:
+Komisja celowo nie zadawała pytań dodatkowych, bo wypowiedź monologowa wyczerpała zagadnienie i spełniła wymagania polecenia.
+W kryterium „rozmowa”: oceń monolog jak substytut rozmowy — jeśli w monologu widać pełną, uszczegółowioną realizację tematu bez luk wymagających dopytania, przyznaj 5–6 pkt. Obniż tylko wtedy, gdy w monologu widać wyraźne luki (brak kontekstu, powierzchowność, błędy), które na prawdziwym egzaminie skłoniłyby komisję do pytań.
+`
+    : "";
 
   return `ZADANIE EGZAMINACYJNE
 Kod: ${input.questionCode}
@@ -56,6 +69,7 @@ ROZMOWA Z KOMISJĄ
 """
 ${dialogueBlock}
 """
+${dialogueScoringNote}
 
 Oceń wypowiedź i zwróć JSON o dokładnie takiej strukturze:
 
@@ -95,35 +109,90 @@ Oceń wypowiedź i zwróć JSON o dokładnie takiej strukturze:
 Podaj po 1–3 cytaty na kryterium (dla kryterium 'jezyk' cytaty mogą pochodzić z monologu i rozmowy). Jeśli w transkrypcji nie ma podstaw do cytatu, zwróć pustą listę cytatów. Listy factualErrors i languageIssues mogą być puste.`;
 }
 
-export const FOLLOWUP_SYSTEM_PROMPT = `Jesteś członkiem przedmiotowego zespołu egzaminacyjnego CKE prowadzącym rozmowę po wypowiedzi monologowej maturzysty z języka polskiego.
+export const FOLLOWUP_SYSTEM_PROMPT = `Jesteś członkiem przedmiotowego zespołu egzaminacyjnego CKE. Twoim zadaniem jest DOGŁĘBNA analiza wypowiedzi monologowej maturzysty z języka polskiego — i decyzja, czy w ogóle zadawać pytania dodatkowe.
 
-ZASADY:
-1. Pytania MUSZĄ wynikać z tego, co zdający faktycznie powiedział — z jego tez, przykładów, kontekstów albo z luk w jego argumentacji. Żadnych pytań ze skryptu.
-2. Każde pytanie przypinasz do dosłownego fragmentu transkrypcji (pole basedOnQuote) — skopiowanego znak w znak.
-3. Pytania mają pogłębiać wypowiedź: prosić o uzasadnienie, doprecyzowanie pojęcia, rozwinięcie kontekstu albo konfrontację z innym odczytaniem. Nie zadawaj pytań encyklopedycznych oderwanych od wypowiedzi.
-4. Ton rzeczowy i uprzejmy, jak na prawdziwym egzaminie. Jedno pytanie = jedno zdanie pytające.
+JAK DZIAŁA PRAWDZIWA KOMISJA (odwzorowuj to dokładnie):
+1. Najpierw analizujesz wypowiedź względem wymagań polecenia — nie „czy brzmi dobrze”, ale czy zrealizowano WSZYSTKIE wymagane elementy z odpowiednią głębią.
+2. Jeśli zdający wyczerpał temat, odwołał się do wymaganych elementów, argumentacja jest wystarczająco pogłębiona i nie ma luk wymagających doprecyzowania — komisja NIE zadaje pytań dodatkowych. Przechodzi od razu do oceny. Ustaw needsFollowUp: false i questions: [].
+3. Jeśli czegoś brakuje, jest powierzchowne, sprzeczne, niejasne albo wymaga doprecyzowania — zadajesz TYLKO pytania o te konkretne luki. Nie pytasz o rzeczy, które zdający już omówił.
+4. Maksymalnie 2 pytania. Na egzaminie komisja dopytuje celowo, nie przesłuchuje.
+
+Wymagane elementy — ZADANIE JAWNE (z listy CKE):
+• zagadnienie sformułowane w poleceniu (teza, problem)
+• odwołanie do lektury obowiązkowej wskazanej w poleceniu (konkretne odniesienia do treści, bohaterów, scen)
+• kontekst przywołany przynajmniej częściowo funkcjonalnie (inny utwór, epoka, historia, filozofia itd.)
+• argumentacja przynajmniej zadowalająca (nie same ogólniki)
+• kompozycja: wstęp, rozwinięcie, zakończenie
+
+Wymagane elementy — ZADANIE NIEJAWNE:
+• zagadnienie z polecenia
+• omówienie dołączonego tekstu (literackiego / nieliterackiego / ikonicznego)
+• drugi element: inny tekst kultury LUB własne doświadczenia komunikacyjne
+• argumentacja i kompozycja jak wyżej
+
+Kiedy NIE zadawać pytań (needsFollowUp: false):
+• wszystkie wymagane elementy są obecne i wystarczająco rozwinięte
+• argumentacja co najmniej zadowalająca, z trafnymi przykładami
+• brak oczywistych luk, sprzeczności ani stwierdzeń wymagających doprecyzowania
+• wypowiedź jest merytorycznie poprawna w omawianym zakresie
+
+Kiedy ZADAWAĆ pytania (needsFollowUp: true) — tylko o to, czego brakuje:
+• brak kontekstu lub kontekst niefunkcjonalny → zapytaj o kontekst
+• brak odwołania do lektury/tekstu → zapytaj o konkret z utworu
+• ogólniki bez przykładów → poproś o uzasadnienie odwołaniem do tekstu
+• sprzeczność lub niejasna teza → poproś o doprecyzowanie
+• powierzchowna argumentacja → poproś o pogłębienie konkretnego wątku
+• błąd rzeczowy wymagający wyjaśnienia → zapytaj o doprecyzowanie (ostrożnie, bez podpowiadania odpowiedzi)
+
+ZASADY PYTAŃ (gdy needsFollowUp=true):
+1. Każde pytanie dotyczy WYŁĄCZNIE luki wykrytej w analizie — pole targetsGap opisuje brak.
+2. Pytanie może nawiązać do fragmentu wypowiedzi (basedOnQuote), ale tylko jeśli ten fragment istnieje dosłownie w transkrypcji.
+3. Nie zadawaj pytań „na zapas”, encyklopedycznych ani o rzeczy już omówione.
+4. Ton rzeczowy i uprzejmy. Jedno pytanie = jedno zdanie.
 
 Odpowiadasz wyłącznie poprawnym obiektem JSON, bez komentarzy i bez bloków markdown.`;
 
 export function buildFollowUpPrompt(input: {
   questionTitle: string;
   questionKind: QuestionKind;
+  cultureTextHint?: string;
   transcript: string;
 }): string {
-  return `ZADANIE ZDAJĄCEGO
-Typ: ${input.questionKind}
-Polecenie: ${input.questionTitle}
+  const kindLabel =
+    input.questionKind === "jawne"
+      ? "ZADANIE JAWNE — wymaga: zagadnienie + lektura obowiązkowa + kontekst funkcjonalny + argumentacja + kompozycja"
+      : "ZADANIE NIEJAWNE — wymaga: zagadnienie + omówienie dołączonego tekstu + drugi tekst kultury lub własne doświadczenia + argumentacja + kompozycja";
 
-TRANSKRYPCJA WYPOWIEDZI
+  return `${kindLabel}
+
+Polecenie: ${input.questionTitle}
+${input.cultureTextHint ? `Materiał dołączony: ${input.cultureTextHint}` : ""}
+
+TRANSKRYPCJA WYPOWIEDZI MONOLOGOWEJ
 """
 ${input.transcript.trim()}
 """
 
-Sformułuj 2 pytania, które komisja zadałaby temu zdającemu. Zwróć JSON:
+KROK 1: Dogłębnie przeanalizuj wypowiedź względem wymagań polecenia.
+KROK 2: Zdecyduj, czy komisja musi dopytywać, czy wypowiedź jest kompletna.
+KROK 3: Jeśli trzeba dopytać — sformułuj maksymalnie 2 pytania WYŁĄCZNIE o wykryte luki.
+
+Zwróć JSON:
 
 {
+  "needsFollowUp": true lub false,
+  "skipReason": "gdy needsFollowUp=false: 1–2 zdania dlaczego wypowiedź jest kompletna (np. 'Zrealizowałeś zagadnienie, odwołałeś się do lektury i kontekstu z zadowalającą argumentacją.')",
+  "gaps": [
+    { "element": "np. kontekst / lektura / argumentacja", "description": "co dokładnie brakuje lub jest niewystarczające" }
+  ],
   "questions": [
-    { "text": "treść pytania", "basedOnQuote": "DOSŁOWNY fragment transkrypcji, którego dotyczy pytanie" }
+    {
+      "text": "treść pytania — tylko o brakujący element",
+      "basedOnQuote": "DOSŁOWNY fragment transkrypcji (opcjonalnie, jeśli pytanie nawiązuje do tego co powiedział)",
+      "targetsGap": "która luka z gaps jest celem tego pytania"
+    }
   ]
-}`;
+}
+
+Jeśli needsFollowUp=false: gaps=[], questions=[]. Nie wymyślaj pytań „na wszelki wypadek".`;
 }
