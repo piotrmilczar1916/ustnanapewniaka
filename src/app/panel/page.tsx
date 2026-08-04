@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function PanelPage() {
   return (
-    <div className="border-b-2 border-ink bg-paper">
+    <div className="border-b-2 border-ink bg-transparent">
       <UserPanel />
     </div>
   );
