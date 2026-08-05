@@ -4,10 +4,8 @@ export interface UserProfile {
   id: string;
   email: string;
   name: string;
-  /** SHA-256 hex — lokalny MVP; TODO: Supabase Auth */
-  passwordHash: string;
   plan: PlanId;
-  /** ISO date — koniec pełnego dostępu (dzień egzaminu) */
+  /** ISO date — koniec planu Max (dzień egzaminu) */
   accessUntil: string | null;
   createdAt: string;
 }

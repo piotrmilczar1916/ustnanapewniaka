@@ -228,8 +228,7 @@ export function UserPanel() {
         <Button
           variant="secondary"
           onClick={() => {
-            logout();
-            router.push("/");
+            void logout().then(() => router.push("/"));
           }}
         >
           Wyloguj się

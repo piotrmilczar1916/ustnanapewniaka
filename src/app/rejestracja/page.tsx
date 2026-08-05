@@ -22,10 +22,6 @@ export default function RejestracjaPage() {
         <div className="mt-8 border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)] sm:p-6">
           <RegisterForm />
         </div>
-        <p className="mt-4 text-xs text-graphite">
-          {/* TODO: podłączyć Supabase Auth */}
-          Auth lokalny (przeglądarka) — docelowo Supabase.
-        </p>
       </div>
     </div>
   );

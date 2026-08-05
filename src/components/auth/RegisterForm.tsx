@@ -13,6 +13,7 @@ export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
@@ -24,11 +25,18 @@ export function RegisterForm() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     setPending(true);
     const result = await register({ name, email, password });
     setPending(false);
     if (result.error) {
       setError(result.error);
+      return;
+    }
+    if (result.needsEmailConfirmation) {
+      setInfo(
+        "Konto utworzone. Sprawdź skrzynkę e-mail i kliknij link potwierdzający, aby się zalogować.",
+      );
       return;
     }
     router.push("/panel");
@@ -81,6 +89,12 @@ export function RegisterForm() {
           Minimum 6 znaków
         </span>
       </label>
+
+      {info ? (
+        <p className="border-2 border-success/40 bg-paper p-3 text-sm text-success">
+          {info}
+        </p>
+      ) : null}
 
       {error ? (
         <p className="border-2 border-stamp-red/40 bg-paper p-3 text-sm text-stamp-red">

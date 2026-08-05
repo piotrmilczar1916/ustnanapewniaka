@@ -5,37 +5,52 @@ Symulator matury ustnej z polskiego (sesja 2026/2027). Uczeń losuje pytanie, m�
 ## Stack
 
 - Next.js (App Router) + TypeScript
-- Tailwind CSS v4 (tokeny designu w `src/app/globals.css`)
-- Planowane: Supabase, Anthropic Claude (backend), Przelewy24/Stripe
+- Tailwind CSS v4
+- Supabase (Auth + Postgres)
+- Anthropic Claude (ocena po stronie serwera)
 
 ## Uruchomienie
 
 ```bash
 npm install
+cp .env.example .env.local
+# uzupełnij klucze w .env.local
 npm run dev
 ```
 
 Otwórz [http://localhost:3000](http://localhost:3000).
 
-## Co jest gotowe (etapy 1–3)
+## Supabase — konfiguracja (jednorazowo)
 
-- Strona główna: hero z pieczątką, jak działa, wyróżniki, cennik Free/49,99 zł, FAQ
-- Symulator `/symulacja`: pełny mock flow (egzamin → losowanie → prep → nagranie → pytania dodatkowe → ocena z cytatami)
-- Placeholdery `/konto` i `/cennik`
+1. Załóż projekt na [supabase.com](https://supabase.com)
+2. **SQL Editor** → wklej i uruchom plik `supabase/migrations/001_initial_schema.sql`
+3. **Project Settings → API** → skopiuj URL i `anon` key do `.env.local`:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=...
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+   ```
+4. **Authentication → URL Configuration** → dodaj redirect:
+   - `http://localhost:3000/auth/callback`
+   - `https://ustnanapewniaka.pl/auth/callback` (produkcja)
+5. **Authentication → Providers → Email**:
+   - na dev możesz wyłączyć „Confirm email”, żeby logować się od razu po rejestracji
+   - na produkcji zostaw potwierdzenie e-mail włączone
 
-## Dane testowe
+## Co jest gotowe
 
-Pytania w `src/data/mock-questions.ts` są oznaczone `isTestData: true` — **TODO: zastąpić realną bazą 76 pytań CKE**.
-
-Ocena w `src/data/mock-evaluation.ts` jest mockiem — **TODO: Anthropic API tylko po stronie serwera**.
+- Strona główna, symulator, panel ucznia
+- 76 pytań jawnych CKE
+- Komisja AI (Anthropic) z weryfikacją cytatów
+- Auth przez Supabase (rejestracja, logowanie, wyniki w bazie)
+- Middleware chroni `/panel/*`
 
 ## Kolejność dalszych prac
 
-1. Supabase (auth opcjonalny, historia sesji)
-2. Endpoint oceny Claude (klucz tylko na backendzie)
-3. Płatność jednorazowa 49,99 zł + odblokowanie dostępu
-4. SEO (sitemap), dopracowanie mobile
+1. Płatność jednorazowa 49,99 zł (Stripe / Przelewy24) + webhook → plan Max
+2. Rate limit na `/api/ocena`
+3. Whisper zamiast Web Speech API
+4. Regulamin + polityka prywatności
 
 ## Design
 
-Motyw: dokument egzaminacyjny + pieczątka. Kolory i fonty wg briefu (`--ink`, `--paper`, `--stamp-red`, Big Shoulders Display, IBM Plex Sans/Mono).
+Motyw: dokument egzaminacyjny + pieczątka. Kolory: `--ink`, `--paper`, `--stamp-red`, Big Shoulders Display, IBM Plex Sans/Mono.
