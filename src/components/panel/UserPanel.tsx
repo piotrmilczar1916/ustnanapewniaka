@@ -47,7 +47,7 @@ export function UserPanel() {
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-graphite">
-            Mój panel · sesja 2026/2027
+            Mój panel
           </p>
           <h1 className="mt-1 font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
             Cześć, {user.name}
