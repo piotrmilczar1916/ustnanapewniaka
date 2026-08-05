@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/Button";
 import { ButtonLink } from "@/components/ButtonLink";
 import { Stamp } from "@/components/Stamp";
@@ -19,14 +19,21 @@ import {
 export function UserPanel() {
   const { ready, user, progress, results, logout } = useAuth();
   const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const insights = useMemo(() => computePanelInsights(results), [results]);
 
   useEffect(() => {
-    if (ready && !user) {
+    if (ready && !user && !loggingOut) {
       router.replace("/logowanie");
     }
-  }, [ready, user, router]);
+  }, [ready, user, router, loggingOut]);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    await logout();
+    router.replace("/");
+  }
 
   if (!ready || !user) {
     return (
@@ -225,12 +232,7 @@ export function UserPanel() {
       </section>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <Button
-          variant="secondary"
-          onClick={() => {
-            void logout().then(() => router.push("/"));
-          }}
-        >
+        <Button variant="secondary" onClick={() => void handleLogout()}>
           Wyloguj się
         </Button>
         <Link

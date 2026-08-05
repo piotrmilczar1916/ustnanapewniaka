@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { mapAuthError } from "@/lib/auth/profile";
 import { getSupabaseEnv, isSupabaseConfigured } from "@/lib/supabase/config";
 
 export async function GET(request: Request) {
@@ -33,6 +34,19 @@ export async function GET(request: Request) {
     if (!error) {
       return NextResponse.redirect(new URL(next, origin));
     }
+    console.error("auth/callback exchangeCodeForSession", error.message);
+  }
+
+  const errorCode = searchParams.get("error_code");
+  const errorDescription = searchParams.get("error_description");
+  if (errorCode || errorDescription) {
+    const message = mapAuthError(errorDescription ?? errorCode ?? "auth");
+    return NextResponse.redirect(
+      new URL(
+        `/logowanie?error=${encodeURIComponent(message)}`,
+        origin,
+      ),
+    );
   }
 
   return NextResponse.redirect(new URL("/logowanie?error=auth", origin));

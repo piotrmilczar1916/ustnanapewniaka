@@ -254,18 +254,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const normalized = email.trim().toLowerCase();
-      const supabase = createClient();
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: normalized,
-        password,
+      const response = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalized, password }),
+        credentials: "same-origin",
       });
 
-      if (error) {
-        return { error: mapAuthError(error.message) };
+      const body = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        return { error: body.error ?? "Nie udało się zalogować." };
       }
 
-      await applyAuthSession(data.session);
+      const supabase = createClient();
+      const {
+        data: { session: current },
+      } = await supabase.auth.getSession();
+
+      await applyAuthSession(current);
       return {};
     },
     [configured, applyAuthSession],
@@ -273,6 +281,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     if (!configured) return;
+
+    await fetch("/auth/logout", { method: "POST", credentials: "same-origin" });
 
     const supabase = createClient();
     await supabase.auth.signOut();

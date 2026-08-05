@@ -1,18 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 export function LoginForm() {
+  return (
+    <Suspense fallback={<p className="text-sm text-graphite">Ładowanie…</p>}>
+      <LoginFormInner />
+    </Suspense>
+  );
+}
+
+function LoginFormInner() {
   const { login, ready, session } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    const authError = searchParams.get("error");
+    if (authError) {
+      setError(decodeURIComponent(authError));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (ready && session) {
@@ -30,7 +46,8 @@ export function LoginForm() {
       setError(result.error);
       return;
     }
-    router.push("/panel");
+    router.refresh();
+    router.replace("/panel");
   }
 
   return (
