@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Button } from "@/components/Button";
+import { AlreadyLoggedInNotice } from "@/components/auth/AlreadyLoggedInNotice";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 export function RegisterForm() {
@@ -15,12 +16,6 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    if (ready && session) {
-      router.replace("/panel");
-    }
-  }, [ready, session, router]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -40,6 +35,14 @@ export function RegisterForm() {
       return;
     }
     router.push("/panel");
+  }
+
+  if (!ready) {
+    return <p className="text-sm text-graphite">Sprawdzam sesję…</p>;
+  }
+
+  if (session) {
+    return <AlreadyLoggedInNotice />;
   }
 
   return (

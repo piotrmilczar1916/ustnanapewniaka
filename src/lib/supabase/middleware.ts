@@ -40,12 +40,5 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && (pathname === "/logowanie" || pathname === "/rejestracja")) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/panel";
-    redirectUrl.search = "";
-    return NextResponse.redirect(redirectUrl);
-  }
-
   return supabaseResponse;
 }

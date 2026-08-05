@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/Button";
+import { AlreadyLoggedInNotice } from "@/components/auth/AlreadyLoggedInNotice";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 export function LoginForm() {
@@ -30,12 +31,6 @@ function LoginFormInner() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    if (ready && session) {
-      router.replace("/panel");
-    }
-  }, [ready, session, router]);
-
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -48,6 +43,14 @@ function LoginFormInner() {
     }
     router.refresh();
     router.replace("/panel");
+  }
+
+  if (!ready) {
+    return <p className="text-sm text-graphite">Sprawdzam sesję…</p>;
+  }
+
+  if (session) {
+    return <AlreadyLoggedInNotice />;
   }
 
   return (

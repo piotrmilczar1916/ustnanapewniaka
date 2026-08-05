@@ -37,20 +37,24 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          {ready && session ? (
-            <Link
-              href="/panel"
-              className="text-sm font-medium text-ink transition-colors hover:text-stamp-red"
-            >
-              Mój panel
-            </Link>
+          {ready ? (
+            session ? (
+              <Link
+                href="/panel"
+                className="text-sm font-medium text-ink transition-colors hover:text-stamp-red"
+              >
+                Mój panel
+              </Link>
+            ) : (
+              <Link
+                href="/logowanie"
+                className="text-sm font-medium text-graphite transition-colors hover:text-ink"
+              >
+                Zaloguj
+              </Link>
+            )
           ) : (
-            <Link
-              href="/logowanie"
-              className="text-sm font-medium text-graphite transition-colors hover:text-ink"
-            >
-              Zaloguj
-            </Link>
+            <span className="text-sm text-graphite/50">Konto</span>
           )}
           <ButtonLink href="/symulacja" size="sm">
             Symulator
@@ -88,22 +92,28 @@ export function Header() {
               </li>
             ))}
             <li>
-              {ready && session ? (
-                <Link
-                  href="/panel"
-                  className="block min-h-11 py-2 font-medium text-ink"
-                  onClick={() => setOpen(false)}
-                >
-                  Mój panel
-                </Link>
+              {ready ? (
+                session ? (
+                  <Link
+                    href="/panel"
+                    className="block min-h-11 py-2 font-medium text-ink"
+                    onClick={() => setOpen(false)}
+                  >
+                    Mój panel
+                  </Link>
+                ) : (
+                  <Link
+                    href="/logowanie"
+                    className="block min-h-11 py-2 font-medium text-ink"
+                    onClick={() => setOpen(false)}
+                  >
+                    Zaloguj
+                  </Link>
+                )
               ) : (
-                <Link
-                  href="/logowanie"
-                  className="block min-h-11 py-2 font-medium text-ink"
-                  onClick={() => setOpen(false)}
-                >
-                  Zaloguj
-                </Link>
+                <span className="block min-h-11 py-2 text-graphite/50">
+                  Konto
+                </span>
               )}
             </li>
             <li>
