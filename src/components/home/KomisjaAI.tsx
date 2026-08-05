@@ -56,11 +56,11 @@ export function KomisjaAI() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
           <div className="max-w-2xl">
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-stamp-red">
+            <p className="inline-flex items-center border-2 border-ink bg-gold px-3 py-1 font-display text-xs font-bold uppercase tracking-[0.14em] text-ink shadow-[2px_2px_0_var(--ink)]">
               Nasz wyróżnik
             </p>
             <h2 className="mt-2 font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
-              Jak działa komisja AI
+              KOMISJA AI
             </h2>
             <p className="mt-3 text-base leading-relaxed text-graphite sm:text-lg">
               Inne narzędzia dają ogólną ocenę albo gotowe opracowania. My

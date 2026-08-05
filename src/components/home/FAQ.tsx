@@ -36,11 +36,8 @@ export function FAQ() {
     <section id="faq" className="border-t-2 border-ink bg-transparent py-16 sm:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight text-ink sm:text-4xl">
-          FAQ
+          Pytania i odpowiedzi
         </h2>
-        <p className="mt-2 text-graphite">
-          Krótko i konkretnie — bez marketingowego lania wody.
-        </p>
 
         <ul className="mt-8 divide-y-2 divide-ink border-2 border-ink bg-paper">
           {FAQ_ITEMS.map((item, index) => {
