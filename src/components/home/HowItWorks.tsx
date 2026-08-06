@@ -16,7 +16,7 @@ const STEPS = [
   {
     n: "03",
     title: "Analiza wypowiedzi",
-    text: "Nasz system analizuje Twoją wypowiedź w kilka sekund i sprawdza merytorykę, argumentację i strukturę.",
+    text: "Analiza wg klucza merytorycznego i kart oceny CKE — z dopytaniem, jeśli czegoś zabrakło.",
   },
   {
     n: "04",
