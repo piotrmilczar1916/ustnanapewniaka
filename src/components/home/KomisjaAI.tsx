@@ -24,7 +24,25 @@ const POINTS = [
     title: "Cytuje Twoją wypowiedź — dosłownie",
     text: "Każdy cytat w ocenie jest porównywany z Twoją transkrypcją. Jeśli fragment się nie zgadza, nie trafia do feedbacku.",
   },
+  {
+    n: "05",
+    title: "Zna każdą lekturę tak dobrze, jak polonista",
+    text: "Do każdego z 76 pytań mamy przygotowany i zweryfikowany przez nauczyciela klucz merytoryczny — komisja porównuje Twoją wypowiedź z tym, co faktycznie powinno się w niej znaleźć, nie z ogólną wiedzą o literaturze.",
+  },
 ];
+
+function pointLayoutClass(index: number): string {
+  if (index < 3) {
+    return "sm:col-span-1 lg:col-span-2";
+  }
+  if (index === 3) {
+    return "sm:col-span-1 lg:col-span-3 lg:col-start-1";
+  }
+  return "sm:col-span-2 sm:max-w-xl sm:justify-self-center lg:col-span-3 lg:col-start-4 lg:max-w-none lg:justify-self-stretch";
+}
+
+const CARD_CLASS =
+  "group/point flex h-full flex-col border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)] transition-[transform,box-shadow,background-color,border-color,opacity] duration-200 ease-out hover:-translate-y-1.5 hover:border-stamp-red hover:bg-paper hover:shadow-[6px_6px_0_var(--stamp-red)] motion-reduce:transition-none motion-reduce:hover:translate-y-0";
 
 export function KomisjaAI() {
   const listRef = useRef<HTMLOListElement>(null);
@@ -73,16 +91,14 @@ export function KomisjaAI() {
 
         <ol
           ref={listRef}
-          className="komisja-ai-steps mt-10 grid gap-4 sm:grid-cols-2 [&:has(>li:hover)_li:not(:hover)]:scale-[0.98] [&:has(>li:hover)_li:not(:hover)]:opacity-55"
+          className="komisja-ai-steps mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-5 [&:has(>li:hover)_li:not(:hover)]:scale-[0.98] [&:has(>li:hover)_li:not(:hover)]:opacity-55"
         >
           {POINTS.map((point, index) => (
             <li
               key={point.n}
               className={[
-                "group/point border-2 border-ink bg-paper-dim p-5 shadow-[4px_4px_0_var(--ink)]",
-                "transition-[transform,box-shadow,background-color,border-color,opacity] duration-200 ease-out",
-                "hover:-translate-y-1.5 hover:border-stamp-red hover:bg-paper hover:shadow-[6px_6px_0_var(--stamp-red)]",
-                "motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+                CARD_CLASS,
+                pointLayoutClass(index),
                 revealed ? "animate-slide-up-reveal" : "translate-y-7 opacity-0",
               ].join(" ")}
               style={revealed ? { animationDelay: `${index * 0.1}s` } : undefined}
@@ -90,10 +106,10 @@ export function KomisjaAI() {
               <p className="inline-block font-mono text-sm text-stamp-red transition-[color,background-color,transform] duration-200 group-hover/point:scale-110 group-hover/point:bg-stamp-red group-hover/point:px-2 group-hover/point:py-0.5 group-hover/point:text-paper">
                 {point.n}
               </p>
-              <h3 className="mt-2 font-display text-xl font-bold uppercase tracking-wide text-ink transition-colors duration-200 group-hover/point:text-stamp-red">
+              <h3 className="mt-2 font-display text-lg font-bold uppercase tracking-wide text-ink transition-colors duration-200 group-hover/point:text-stamp-red sm:text-xl">
                 {point.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-graphite transition-colors duration-200 group-hover/point:text-ink sm:text-base">
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-graphite transition-colors duration-200 group-hover/point:text-ink sm:text-base">
                 {point.text}
               </p>
             </li>
